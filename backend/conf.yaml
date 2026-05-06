@@ -1,0 +1,16 @@
+
+# Dataset configuration
+path: C:\Users\defaultuser0\Documents\object detection
+train: Images/train
+val: Images/val
+test: Images/test
+
+nc: 7
+names: ['box', 'card', 'key', 'lau', 'mouse', 'pen', 'wallet']
+
+roboflow:
+  workspace: manoj-g-vlewj
+  project: nhan-dang-doi-tuong-mqjkc-aoqhs
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/manoj-g-vlewj/nhan-dang-doi-tuong-mqjkc-aoqhs/dataset/1

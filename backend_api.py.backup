@@ -1,0 +1,64 @@
+from fastapi import FastAPI, UploadFile, File
+import cv2
+import numpy as np
+from ultralytics import YOLO
+
+app = FastAPI()
+
+model = YOLO("yolov8m.pt")
+
+# -----------------------------
+# IMAGE DETECTION
+# -----------------------------
+@app.post("/detect-image")
+async def detect_image(file: UploadFile = File(...)):
+    contents = await file.read()
+    npimg = np.frombuffer(contents, np.uint8)
+    img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+
+    results = model(img)
+
+    detected_objects = []
+
+    for r in results:
+        for box in r.boxes:
+            label = model.names[int(box.cls[0])]
+            detected_objects.append(label)
+
+    return {"objects": list(set(detected_objects))}
+
+
+# -----------------------------
+# VIDEO DETECTION (FRAME SAMPLE)
+# -----------------------------
+@app.post("/detect-video")
+async def detect_video(file: UploadFile = File(...)):
+    contents = await file.read()
+
+    temp_path = "temp_video.mp4"
+    with open(temp_path, "wb") as f:
+        f.write(contents)
+
+    cap = cv2.VideoCapture(temp_path)
+
+    detected = set()
+    frame_count = 0
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        if frame_count % 10 == 0:
+            results = model(frame)
+
+            for r in results:
+                for box in r.boxes:
+                    label = model.names[int(box.cls[0])]
+                    detected.add(label)
+
+        frame_count += 1
+
+    cap.release()
+
+    return {"objects": list(detected)}
